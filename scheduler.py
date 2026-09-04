@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import random
@@ -89,14 +90,16 @@ def download_image(url):
 
 def create_tweetkit():
     if os.getenv("GITHUB_ACTIONS") == "true":
-        cookie_json = os.environ["X_COOKIE_JSON"]
+        cookie_b64 = os.environ["X_COOKIE_B64"]
 
         cookies_path = os.path.join(BASE_DIR, "cookies.json")
 
-        with open(cookies_path, "w", encoding="utf-8") as f:
-            f.write(cookie_json)
-
         try:
+            cookie_data = base64.b64decode(cookie_b64)
+
+            with open(cookies_path, "wb") as f:
+                f.write(cookie_data)
+
             subprocess.run(
                 [
                     "tweetkit",
