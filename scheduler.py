@@ -93,8 +93,16 @@ def create_tweetkit():
         cookie_b64 = os.environ["X_COOKIE_B64"]
 
         try:
-            cookie_data = base64.b64decode(cookie_b64)
-            cookie_json = json.loads(cookie_data.decode("utf-8"))
+            cookie_data = base64.b64decode(cookie_b64.strip())
+
+            try:
+                cookie_json = json.loads(cookie_data.decode("utf-8"))
+            except json.JSONDecodeError:
+                try:
+                    cookie_data = base64.b64decode(cookie_data.decode("utf-8").strip())
+                    cookie_json = json.loads(cookie_data.decode("utf-8"))
+                except Exception as e:
+                    raise RuntimeError(f"X_COOKIE_B64 内容无法解析为 Cookie JSON：{e}")
         except Exception as e:
             raise RuntimeError(f"X_COOKIE_B64 解码失败：{e}")
 
