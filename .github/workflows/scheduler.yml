@@ -3,7 +3,7 @@ name: DCI Screenshot Scheduler
 on:
   workflow_dispatch:
   schedule:
-    - cron: "29 2,14 * * *"
+    - cron: "10 22 * * *"
 
 permissions:
   contents: write
