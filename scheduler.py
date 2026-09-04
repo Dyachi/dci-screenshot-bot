@@ -2,6 +2,7 @@ import json
 import os
 import random
 import re
+import subprocess
 import tempfile
 import urllib.request
 from datetime import datetime, timedelta
@@ -86,6 +87,35 @@ def download_image(url):
         raise
 
 
+def create_tweetkit():
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        cookie_json = os.environ["X_COOKIE_JSON"]
+
+        cookies_path = os.path.join(BASE_DIR, "cookies.json")
+
+        with open(cookies_path, "w", encoding="utf-8") as f:
+            f.write(cookie_json)
+
+        try:
+            subprocess.run(
+                [
+                    "tweetkit",
+                    "import",
+                    "--file",
+                    cookies_path
+                ],
+                check=True
+            )
+
+            return TweetKit()
+
+        finally:
+            if os.path.exists(cookies_path):
+                os.remove(cookies_path)
+
+    return TweetKit(cookie_file=COOKIE_FILE)
+
+
 def main():
     print("===================================")
     print("       DCI SCREENSHOT SCHEDULER")
@@ -96,11 +126,14 @@ def main():
 
     print(f"图片数量：{len(images)}")
 
-    tk = TweetKit(cookie_file=COOKIE_FILE)
+    tk = create_tweetkit()
 
     now = datetime.now(TIMEZONE)
 
-    print(f"当前时间：{now.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+    print(
+        f"当前时间："
+        f"{now.strftime('%Y-%m-%d %H:%M:%S %Z')}"
+    )
 
     scheduled_count = 0
 
@@ -155,7 +188,10 @@ def main():
 
                 save_state(state)
 
-                print(f"成功：{result['scheduled_id']}")
+                print(
+                    f"成功："
+                    f"{result['scheduled_id']}"
+                )
 
                 scheduled_count += 1
 
