@@ -92,29 +92,33 @@ def create_tweetkit():
     if os.getenv("GITHUB_ACTIONS") == "true":
         cookie_b64 = os.environ["X_COOKIE_B64"]
 
-        cookies_path = os.path.join(BASE_DIR, "cookies.json")
-
         try:
             cookie_data = base64.b64decode(cookie_b64)
+            cookie_json = json.loads(cookie_data.decode("utf-8"))
+        except Exception as e:
+            raise RuntimeError(f"X_COOKIE_B64 解码失败：{e}")
 
-            with open(cookies_path, "wb") as f:
-                f.write(cookie_data)
+        cookies = {}
 
-            subprocess.run(
-                [
-                    "tweetkit",
-                    "import",
-                    "--file",
-                    cookies_path
-                ],
-                check=True
-            )
+        for item in cookie_json.get("data", []):
+            key = item.get("key")
+            value = item.get("value")
 
-            return TweetKit()
+            if key and value:
+                cookies[key] = value
 
-        finally:
-            if os.path.exists(cookies_path):
-                os.remove(cookies_path)
+        required = ["auth_token", "ct0"]
+
+        for key in required:
+            if not cookies.get(key):
+                raise RuntimeError(f"Cookie 中缺少：{key}")
+
+        cookie_string = "; ".join(
+            f"{key}={value}"
+            for key, value in cookies.items()
+        )
+
+        return TweetKit(cookie=cookie_string)
 
     return TweetKit(cookie_file=COOKIE_FILE)
 
