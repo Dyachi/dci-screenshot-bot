@@ -25,7 +25,7 @@ POST_TIMES = [
     (22, 29),
 ]
 
-SCHEDULE_DAYS = 7
+SCHEDULE_DAYS = 1
 
 
 def load_images():
