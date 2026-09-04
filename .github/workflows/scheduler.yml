@@ -28,7 +28,7 @@ jobs:
 
       - name: Run scheduler
         env:
-          X_COOKIE_JSON: ${{ secrets.X_B64 }}
+          X_COOKIE_B64: ${{ secrets.X_B64 }}
         run: |
           python scheduler.py
 
