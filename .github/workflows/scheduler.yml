@@ -26,9 +26,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install tweetkit-x
 
+      - name: Check cookie secret
+        env:
+          X_COOKIE_B64: ${{ secrets.X_COOKIE_B64 }}
+        run: |
+          python - <<'PY'
+          import os
+          import base64
+
+          raw = os.environ.get("X_COOKIE_B64", "")
+          print("Secret 字符数:", len(raw))
+          print("前后空白后字符数:", len(raw.strip()))
+
+          try:
+              data = base64.b64decode(raw.strip(), validate=True)
+              print("Base64 解码成功")
+              print("解码后字节数:", len(data))
+              print("是否以 JSON 开头:", data.lstrip().startswith(b"{"))
+          except Exception as e:
+              print("Base64 解码失败:", e)
+          PY
+
       - name: Run scheduler
         env:
-          X_COOKIE_B64: ${{ secrets.X_B64 }}
+          X_COOKIE_B64: ${{ secrets.X_COOKIE_B64 }}
         run: |
           python scheduler.py
 
